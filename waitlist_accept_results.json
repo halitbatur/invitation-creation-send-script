@@ -1,0 +1,10 @@
+[
+  {
+    "email": "halit.batur@cmleteam.com",
+    "status": "success",
+    "response": {
+      "message": "User accepted from waitlist and notification email sent successfully",
+      "code": 200
+    }
+  }
+]
