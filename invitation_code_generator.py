@@ -37,52 +37,35 @@ def generate_invitation_link(email):
     try:
         response = requests.post(url, headers=headers, json=payload)
         
-        # Try to get the response content regardless of status code
-        response_content = {}
         try:
-            response_content = response.json()
+            response_data = response.json()
         except:
-            response_content = {"text": response.text}
+            print(f"Error: Could not parse JSON response for {email}")
+            return {"email": email, "link": None}
             
-        # Now check for success status
+        # Check for success status
         response.raise_for_status()
         
         # Extract the invitation link from the response
-        invitation_link = response_content.get('url')
+        invitation_link = response_data.get('url')
         
         if not invitation_link:
             print(f"Warning: No invitation link found in response for {email}")
-            print(f"Response content: {json.dumps(response_content, indent=2)}")
             
         return {
             "email": email,
-            "link": invitation_link,
-            "response": response_content
+            "link": invitation_link
         }
     except requests.exceptions.RequestException as e:
-        error_message = f"Error generating invitation link for {email}: {e}"
-        print(error_message)
+        print(f"Error generating invitation link for {email}: {e}")
         
-        # Try to get the response content for more details
-        response_content = {}
-        try:
-            if 'response' in locals():
-                try:
-                    response_content = response.json()
-                except:
-                    response_content = {"status_code": response.status_code, "text": response.text}
-        except:
-            pass
-            
-        print(f"Error details for {email}:")
-        print(f"Status code: {getattr(response, 'status_code', 'N/A')}")
-        print(f"Response content: {json.dumps(response_content, indent=2)}")
+        # Print status code if available
+        if 'response' in locals():
+            print(f"Status code: {response.status_code}")
         
         return {
             "email": email,
-            "link": None,
-            "error": str(e),
-            "response": response_content
+            "link": None
         }
 
 def main():
@@ -115,19 +98,12 @@ def main():
             print(f"Link: {result['link']}")
         else:
             print(f"FAILED: {result['email']}")
-            print(f"Error: {result.get('error', 'Unknown error')}")
         print("-" * 50)
     
-    # Save results to a file with full details
-    with open("invitation_links_full.json", "w") as f:
-        json.dump(results, f, indent=2)
-    print(f"Full results saved to invitation_links_full.json")
-    
-    # Save a simplified version with just email and link
-    simplified_results = [{"email": r["email"], "link": r["link"]} for r in results]
+    # Save results to a file
     with open("invitation_links.json", "w") as f:
-        json.dump(simplified_results, f, indent=2)
-    print(f"Simplified results saved to invitation_links.json")
+        json.dump(results, f, indent=2)
+    print(f"Results saved to invitation_links.json")
 
 if __name__ == "__main__":
     main()
