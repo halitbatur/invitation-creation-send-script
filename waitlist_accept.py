@@ -3,6 +3,25 @@ import requests
 import time
 import sys
 
+def load_successful_emails():
+    """Load the list of successfully processed emails."""
+    try:
+        with open("successful_emails.json", "r") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return []
+    except Exception as e:
+        print(f"Error loading successful_emails.json: {e}")
+        return []
+
+def save_successful_email(email):
+    """Save a successfully processed email to the tracking file."""
+    successful_emails = load_successful_emails()
+    if email not in successful_emails:
+        successful_emails.append(email)
+        with open("successful_emails.json", "w") as f:
+            json.dump(successful_emails, f, indent=2)
+
 def accept_waitlist_user(email, invitation_link):
     """Call the waitlist accept endpoint for a user."""
     url = "http://localhost:8080/v1/waitlist/accept"
@@ -29,6 +48,9 @@ def accept_waitlist_user(email, invitation_link):
             
         # Now check for success status
         response.raise_for_status()
+        
+        # Save successful email to tracking file
+        save_successful_email(email)
         
         return {
             "email": email,
@@ -74,15 +96,22 @@ def main():
         print("No invitation links found in the file.")
         sys.exit(1)
     
-    # Filter out entries with no link
-    valid_entries = [entry for entry in invitation_data if entry.get("link")]
+    # Load already successful emails
+    successful_emails = load_successful_emails()
+    print(f"Found {len(successful_emails)} previously successful emails.")
+    
+    # Filter out entries with no link and already successful emails
+    valid_entries = [
+        entry for entry in invitation_data 
+        if entry.get("link") and entry["email"] not in successful_emails
+    ]
     
     if not valid_entries:
-        print("No valid invitation links found in the file.")
-        print("Please run the invitation link generator first and make sure it creates valid links.")
-        sys.exit(1)
+        print("No new valid invitation links to process.")
+        print("All emails have been successfully processed.")
+        sys.exit(0)
     
-    print(f"Found {len(valid_entries)} valid invitation links to process.")
+    print(f"Found {len(valid_entries)} new valid invitation links to process.")
     
     # Process each invitation and accept waitlist users
     results = []
@@ -115,6 +144,7 @@ def main():
     with open(output_file, "w") as f:
         json.dump(results, f, indent=2)
     print(f"Results saved to {output_file}")
+    print(f"Successfully processed emails are tracked in successful_emails.json")
 
 if __name__ == "__main__":
     main() 
