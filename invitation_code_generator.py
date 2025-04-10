@@ -3,6 +3,7 @@ import json
 from datetime import datetime, timedelta
 import time
 import pandas as pd
+import os
 
 def read_emails_from_xlsx():
     """Read emails from XLSX file."""
@@ -31,6 +32,28 @@ def read_failed_emails():
         print(f"Error reading invitation_links.json: {e}")
         return []
 
+def load_existing_results():
+    """Load existing results from invitation_links.json if it exists."""
+    try:
+        if os.path.exists('invitation_links.json'):
+            with open('invitation_links.json', 'r') as file:
+                data = json.load(file)
+                print(f"Loaded {len(data)} existing entries from invitation_links.json")
+                return data
+        return []
+    except Exception as e:
+        print(f"Error loading invitation_links.json: {e}")
+        return []
+
+def save_result(results):
+    """Save results to invitation_links.json."""
+    try:
+        with open("invitation_links.json", "w") as f:
+            json.dump(results, f, indent=2)
+        print("Results saved to invitation_links.json")
+    except Exception as e:
+        print(f"Error saving results: {e}")
+
 # Function to generate invitation link for an email
 def generate_invitation_link(email):
     # Calculate end date (1 month from now)
@@ -43,7 +66,7 @@ def generate_invitation_link(email):
     headers = {
         "accept": "application/json, text/plain, */*",
         "accept-language": "en-US,en;q=0.9",
-        "authorization": "Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6ImE5ZGRjYTc2YzEyMzMyNmI5ZTJlODJkOGFjNDg0MWU1MzMyMmI3NmEiLCJ0eXAiOiJKV1QifQ.eyJuYW1lIjoiSGFsaXQgRnVhdCBCYXR1ciIsInBpY3R1cmUiOiJodHRwczovL2xoMy5nb29nbGV1c2VyY29udGVudC5jb20vYS9BQ2c4b2NMcGZ0aGpmNXg1WW10cDhHZFB3VUNGOWJmNVhkWWpnODVVcGJuaGVqR3Vfajd6NUE9czk2LWMiLCJ0d29GYWN0b3JWZXJpZmllZCI6dHJ1ZSwiaXNzIjoiaHR0cHM6Ly9zZWN1cmV0b2tlbi5nb29nbGUuY29tL2Jyb2x5ei1iYWNrb2ZmaWNlIiwiYXVkIjoiYnJvbHl6LWJhY2tvZmZpY2UiLCJhdXRoX3RpbWUiOjE3NDM0MDcwOTEsInVzZXJfaWQiOiJZU3BEZUJseXc3Y210Q1lQYlRNZjdqdEQ3aDMyIiwic3ViIjoiWVNwRGVCbHl3N2NtdENZUGJUTWY3anREN2gzMiIsImlhdCI6MTc0MzYwMjU3OCwiZXhwIjoxNzQzNjA2MTc4LCJlbWFpbCI6ImhhbGl0LmJhdHVyQGNtbGV0ZWFtLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJmaXJlYmFzZSI6eyJpZGVudGl0aWVzIjp7Imdvb2dsZS5jb20iOlsiMTA3ODU0NTc1NjY0MzY0NTA1MjE2Il0sImVtYWlsIjpbImhhbGl0LmJhdHVyQGNtbGV0ZWFtLmNvbSJdfSwic2lnbl9pbl9wcm92aWRlciI6Imdvb2dsZS5jb20ifX0.gwzfg7R6dV_7mtg-Wa-5Yo6jY3ejMXLZzvpqoh-FbK3OLRRvjgf1D9odIGRESwOnMRz68ParIHGISWdBOGBt5vwAaKJXJkiIIfXeN7mdAxFWstX1nlXyajGgqsF3i2Z_r_Gn1H7mBZRSz5dJcCV7XsXrmtYCUkHopeVmnVC4vA7t95gBEtbrNpwP0rq9DNTaXMHEQR-0MsACRTMiyA87EV_kDfVQ1xuXxJqAtKfjE4VDxqTvuriwhOHlx_tCdDZUwsYoJvOeczAB5hAF8P-e1L6dkAQ67y2UC_6tRoRGfAp3Wkbp8uD06761gf9iAvMU47Dvu0IZ_9-Er8b64b2BDA",
+        "authorization": "Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6IjcxMTE1MjM1YTZjNjE0NTRlZmRlZGM0NWE3N2U0MzUxMzY3ZWViZTAiLCJ0eXAiOiJKV1QifQ.eyJuYW1lIjoiSGFsaXQgRnVhdCBCYXR1ciIsInBpY3R1cmUiOiJodHRwczovL2xoMy5nb29nbGV1c2VyY29udGVudC5jb20vYS9BQ2c4b2NMcGZ0aGpmNXg1WW10cDhHZFB3VUNGOWJmNVhkWWpnODVVcGJuaGVqR3Vfajd6NUE9czk2LWMiLCJ0d29GYWN0b3JWZXJpZmllZCI6dHJ1ZSwiaXNzIjoiaHR0cHM6Ly9zZWN1cmV0b2tlbi5nb29nbGUuY29tL2Jyb2x5ei1iYWNrb2ZmaWNlIiwiYXVkIjoiYnJvbHl6LWJhY2tvZmZpY2UiLCJhdXRoX3RpbWUiOjE3NDM0MDcwOTEsInVzZXJfaWQiOiJZU3BEZUJseXc3Y210Q1lQYlRNZjdqdEQ3aDMyIiwic3ViIjoiWVNwRGVCbHl3N2NtdENZUGJUTWY3anREN2gzMiIsImlhdCI6MTc0NDIyMDQ3MCwiZXhwIjoxNzQ0MjI0MDcwLCJlbWFpbCI6ImhhbGl0LmJhdHVyQGNtbGV0ZWFtLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJmaXJlYmFzZSI6eyJpZGVudGl0aWVzIjp7Imdvb2dsZS5jb20iOlsiMTA3ODU0NTc1NjY0MzY0NTA1MjE2Il0sImVtYWlsIjpbImhhbGl0LmJhdHVyQGNtbGV0ZWFtLmNvbSJdfSwic2lnbl9pbl9wcm92aWRlciI6Imdvb2dsZS5jb20ifX0.PcYhdrF8i8O2GgBhVJ5_EpA4rBQ8rvrOlLN2TeAfISDMOA5XokzJkmohK5OjEm4_CmSJY14uCY5yAVKzeDzohFphohofumYB-ahcZa5-Cw3hbnOfC8QzeYh3osRu83ZM3ojI9S6tOn3A-KwBhOoHAkizxsCAnejGD5K12N0C9fN-Q7jl8U4QzT_dO97PwXYTaY1bwiUleDS-ZJljO66s-EIm6kxYlx3sst8qiOIp35KQE-ehEBO49TatXImbTys8I4odDs19JKWihbyUYrvUZE-KVgQdDA2649fVXYRkZLyDP6r1ARpBOabHjCMU66WPJcOp97qQLyoADLfihctWFw",
         "content-type": "application/json",
         "priority": "u=1, i",
         "sec-ch-ua": "\"Not:A-Brand\";v=\"24\", \"Chromium\";v=\"134\"",
@@ -99,40 +122,54 @@ def generate_invitation_link(email):
 def main():
     # Read emails from XLSX file
     print("Reading emails from waitlist.xlsx...")
-    emails = read_emails_from_xlsx()
+    all_emails = read_emails_from_xlsx()
     
-    if not emails:
+    if not all_emails:
         print("No emails found in waitlist.xlsx. Please check the file exists and contains valid email addresses.")
         return
     
-    print(f"Found {len(emails)} emails to process.")
+    # Load existing results if any
+    existing_results = load_existing_results()
+    
+    # Create a dictionary of existing results for easy lookup
+    processed_emails = {entry["email"] for entry in existing_results}
+    
+    # Filter out already processed emails
+    emails_to_process = [email for email in all_emails if email not in processed_emails]
+    
+    if not emails_to_process:
+        print("All emails have already been processed!")
+        return
+    
+    print(f"Found {len(all_emails)} total emails. {len(processed_emails)} already processed. {len(emails_to_process)} left to process.")
     
     # Generate invitation links for each email
-    results = []
-    for i, email in enumerate(emails, 1):
-        print(f"[{i}/{len(emails)}] Generating invitation link for {email}...")
+    for i, email in enumerate(emails_to_process, 1):
+        print(f"[{i}/{len(emails_to_process)}] Generating invitation link for {email}...")
         result = generate_invitation_link(email)
-        results.append(result)
-        # Add a small delay to avoid overwhelming the API
-        if i < len(emails):  # Don't sleep after the last email
-            time.sleep(1)
-    
-    # Print results
-    success_count = sum(1 for r in results if r.get("link"))
-    print(f"\nResults: {success_count} successful, {len(emails) - success_count} failed")
-    
-    for result in results:
+        
+        # Add to existing results
+        existing_results.append(result)
+        
+        # Save after each successful generation
+        save_result(existing_results)
+        
+        # Show status
         if result.get("link"):
             print(f"SUCCESS: {result['email']}")
             print(f"Link: {result['link']}")
         else:
             print(f"FAILED: {result['email']}")
         print("-" * 50)
+        
+        # Add a small delay to avoid overwhelming the API
+        if i < len(emails_to_process):  # Don't sleep after the last email
+            time.sleep(1)
     
-    # Save results to a file
-    with open("invitation_links.json", "w") as f:
-        json.dump(results, f, indent=2)
-    print(f"Results saved to invitation_links.json")
+    # Print final summary
+    success_count = sum(1 for r in existing_results if r.get("link"))
+    print(f"\nFinal Results: {success_count} successful, {len(all_emails) - success_count} failed")
+    print(f"All results saved to invitation_links.json")
 
 if __name__ == "__main__":
     main()
